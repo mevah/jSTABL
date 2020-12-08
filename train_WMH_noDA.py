@@ -29,13 +29,13 @@ from torchio.transforms import (
         ToCanonical,
     )   
 
-from jsabl.networks.UNetModalityMeanTogether import Generic_UNet
-from jsabl.utilities.jaccard import *   
+from jstabl.networks.UNetModalityMeanTogether import Generic_UNet
+from jstabl.utilities.jaccard import *   
 
     
 # Define training and patches sampling parameters   
 num_epochs_max = 10000  
-patch_size = {'source':(144,192,48), 'target':(144,192,48)}
+patch_size = {'source':(144,192,15), 'target':(144,192,15)}
 
 nb_voxels = {d:np.prod(v) for d,v in patch_size.items()}
 queue_length = 16
@@ -273,7 +273,7 @@ def main():
     fold_dir_model = os.path.join(fold_dir,'models')
     if not os.path.exists(fold_dir_model):
         os.makedirs(fold_dir_model)
-    save_path = os.path.join(fold_dir_model,'./CP_{}.pth')
+    save_path = os.path.join(fold_dir_model,'./cp_{}.pth')
 
     output_path = os.path.join(fold_dir,'output')
     if not os.path.exists(output_path):
@@ -294,15 +294,15 @@ def main():
 
 
     # SPLITS
-    split_path_source = opt.dataset_split_source
-    assert os.path.isfile(split_path_source), 'source file not found'
+    #split_path_source = opt.dataset_split_source
+    #assert os.path.isfile(split_path_source), 'source file not found'
 
-    split_path_target = opt.dataset_split_target
-    assert os.path.isfile(split_path_target), 'target file not found'
+    #split_path_target = opt.dataset_split_target
+    #assert os.path.isfile(split_path_target), 'target file not found'
 
-    split_path = dict()
-    split_path['source'] = split_path_source
-    split_path['target'] = split_path_target
+    #split_path = dict()
+    #split_path['source'] = split_path_source
+    #split_path['target'] = split_path_target
 
     path_file = dict()
     path_file['source'] = opt.path_source
@@ -311,24 +311,112 @@ def main():
     list_split = ['training', 'validation',]
     paths_dict = dict()
 
-    for domain in ['source','target']:
-        df_split = pd.read_csv(split_path[domain],header =None)
-        list_file = dict()
-        for split in list_split:
-            list_file[split] = df_split[df_split[1].isin([split])][0].tolist()
+    #for domain in ['source','target']:
+     #   df_split = pd.read_csv(split_path[domain],header =None)
+    list_file = dict()
+     #   for split in list_split:
+     #   list_file[split] = df_split[df_split[1].isin([split])][0].tolist()
 
-        paths_dict_domain = {split:[] for split in list_split}
-        for split in list_split:
-            for subject in list_file[split]:
-                subject_data = []
-                for modality in MODALITIES[domain]:
-                    subject_data.append(Image(modality, path_file[domain]+subject+modality+'.nii.gz', torchio.INTENSITY))
-                if split in ['training', 'validation']:
-                    subject_data.append(Image('label', path_file[domain]+subject+'Label.nii.gz', torchio.LABEL))
+    train_target_list = ["/scratch_net/pengyou/himeva/data/dorent_train/target13_2T1.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target13_2FLAIR.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target13_2Label.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target13_1T1.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target13_1FLAIR.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target13_1Label.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target18_4T1.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target18_4FLAIR.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target18_4Label.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target18_14T1.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target18_14FLAIR.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target18_14Label.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target13_4T1.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target13_4FLAIR.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target13_4Label.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target18_7T1.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target18_7FLAIR.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target18_7Label.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target18_4T1.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target18_4FLAIR.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target18_4Label.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target18_148T1.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target18_148FLAIR.nii.gz",
+                         "/scratch_net/pengyou/himeva/data/dorent_train/target18_148Label.nii.gz"]
 
-                    #subject_data[] = 
-                paths_dict_domain[split].append(Subject(*subject_data))
-            print(domain, split, len(paths_dict_domain[split]))
+
+    val_target_list = ["/scratch_net/pengyou/himeva/data/dorent_train/target18_070T1.nii.gz"
+                   "/scratch_net/pengyou/himeva/data/dorent_train/target18_070FLAIR.nii.gz",
+                   "/scratch_net/pengyou/himeva/data/dorent_train/target18_070Label.nii.gz",
+                   "/scratch_net/pengyou/himeva/data/dorent_train/target13_3T1.nii.gz",
+                   "/scratch_net/pengyou/himeva/data/dorent_train/target13_3FLAIR.nii.gz",
+                   "/scratch_net/pengyou/himeva/data/dorent_train/target13_3Label.nii.gz",
+                   "/scratch_net/pengyou/himeva/data/dorent_train/target18_1T1.nii.gz",
+                   "/scratch_net/pengyou/himeva/data/dorent_train/target18_1FLAIR.nii.gz",
+                   "/scratch_net/pengyou/himeva/data/dorent_train/target18_1Label.nii.gz"]
+
+    train_control_list = ["/scratch_net/pengyou/himeva/data/dorent_train/source100307T1.nii.gz",
+                      "/scratch_net/pengyou/himeva/data/dorent_train/source100307Label.nii.gz",
+                      "/scratch_net/pengyou/himeva/data/dorent_train/source103414T1.nii.gz",
+                      "/scratch_net/pengyou/himeva/data/dorent_train/source103414Label.nii.gz",
+                      "/scratch_net/pengyou/himeva/data/dorent_train/source106016T1.nii.gz",
+                      "/scratch_net/pengyou/himeva/data/dorent_train/source106016Label.nii.gz",
+                      "/scratch_net/pengyou/himeva/data/dorent_train/source110411T1.nii.gz",
+                      "/scratch_net/pengyou/himeva/data/dorent_train/source110411Label.nii.gz",
+                      "/scratch_net/pengyou/himeva/data/dorent_train/source111312T1.nii.gz",
+                      "/scratch_net/pengyou/himeva/data/dorent_train/source111312Label.nii.gz",
+                      "/scratch_net/pengyou/himeva/data/dorent_train/source113619T1.nii.gz",
+                      "/scratch_net/pengyou/himeva/data/dorent_train/source113619Label.nii.gz",
+                      "/scratch_net/pengyou/himeva/data/dorent_train/source115320T1.nii.gz",
+                      "/scratch_net/pengyou/himeva/data/dorent_train/source115320Label.nii.gz",
+                      "/scratch_net/pengyou/himeva/data/dorent_train/source117122T1.nii.gz",
+                      "/scratch_net/pengyou/himeva/data/dorent_train/source117122Label.nii.gz"]
+
+    val_control_list = ["/scratch_net/pengyou/himeva/data/dorent_train/source100408T1.nii.gz",
+                    "/scratch_net/pengyou/himeva/data/dorent_train/source100408Label.nii.gz",
+                    "/scratch_net/pengyou/himeva/data/dorent_train/source111716T1.nii.gz",
+                    "/scratch_net/pengyou/himeva/data/dorent_train/source111716Label.nii.gz",
+                    "/scratch_net/pengyou/himeva/data/dorent_train/source118730T1.nii.gz",
+                    "/scratch_net/pengyou/himeva/data/dorent_train/source118730Label.nii.gz",
+                    "/scratch_net/pengyou/himeva/data/dorent_train/source118932T1.nii.gz",
+                    "/scratch_net/pengyou/himeva/data/dorent_train/source118932Label.nii.gz"]
+
+    list_file["training"] = ["100307", "103414", "106016", "110411", "111312", "113619", "115320", "117122"]
+    list_file["validation"]= ["100408", "111716", "118730", "118932"]
+
+
+    domain = "source"
+    paths_dict_domain = {split:[] for split in list_split}
+
+    for split in list_split:
+        for subject in list_file[split]:
+            subject_data = []
+            for modality in MODALITIES[domain]:
+                subject_data.append(Image(modality, path_file[domain]+subject+modality+'.nii.gz', torchio.INTENSITY))
+            if split in ['training', 'validation']:
+                subject_data.append(Image('label', path_file[domain]+subject+'Label.nii.gz', torchio.LABEL))
+
+            paths_dict_domain[split].append(Subject(*subject_data))
+        print(domain, split, len(paths_dict_domain[split]))
+        paths_dict[domain] = paths_dict_domain
+
+    domain = "target"
+    list_file["training"]= ["13_2", "13_1", "18_4", "18_14", "13_4", "18_7", "18_4", "18_148"]
+    list_file["validation"]= ["18_070", "13_3", "18_1"]
+
+
+    paths_dict_domain = {split: [] for split in list_split}
+    for split in list_split:
+        for subject in list_file[split]:
+            subject_data = []
+            for modality in MODALITIES[domain]:
+                subject_data.append(
+                    Image(modality, path_file[domain]+subject+modality+'.nii.gz', torchio.INTENSITY))
+            if split in ['training', 'validation']:
+                subject_data.append(
+                    Image('label', path_file[domain]+subject+'Label.nii.gz', torchio.LABEL))
+
+                #subject_data[] =
+            paths_dict_domain[split].append(Subject(*subject_data))
+        print(domain, split, len(paths_dict_domain[split]))
         paths_dict[domain] = paths_dict_domain
             
 
@@ -413,11 +501,11 @@ def parsing_data():
 
     parser.add_argument('--path_source',
                         type=str,
-                        default='../data/MEDIA/NeuroTissue_sk/')
+                        default='/scratch_net/pengyou/himeva/data/dorent_train/source')
 
     parser.add_argument('--path_target',
                         type=str,
-                        default='../data/MEDIA/WMHLesion_sk/')
+                        default='/scratch_net/pengyou/himeva/data/dorent_train/target')
 
     parser.add_argument('--learning_rate',
                     type=float,
@@ -434,3 +522,6 @@ def parsing_data():
 
 if __name__ == '__main__':
     main()
+
+
+
