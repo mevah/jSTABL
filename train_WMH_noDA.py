@@ -35,12 +35,12 @@ from jstabl.utilities.jaccard import *
     
 # Define training and patches sampling parameters   
 num_epochs_max = 10000  
-patch_size = {'source':(144,192,15), 'target':(144,192,15)}
+patch_size = {'source':(144,192,42), 'target':(144,192,42)}
 
 nb_voxels = {d:np.prod(v) for d,v in patch_size.items()}
 queue_length = 16
 samples_per_volume = 1
-batch_size = 2
+batch_size = 1
 
 nb_classes = 8
 
